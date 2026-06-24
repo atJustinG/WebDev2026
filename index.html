@@ -1,11 +1,202 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
+
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Berlin Sustainability App</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-<div id="app"></div>
-<script src="app.js"></script>
+
+    <section id="login-screen">
+
+    <header>
+        <h1>Berlin Sustainability App</h1>
+    </header>
+
+    <main>
+
+        <form id="login-form">
+
+            <div>
+                <label for="username">
+                    Benutzername
+                </label>
+
+                <input
+                    type="text"
+                    id="username"
+                    required
+                >
+            </div>
+
+            <div>
+                <label for="password">
+                    Passwort
+                </label>
+
+                <input
+                    type="password"
+                    id="password"
+                    required
+                >
+            </div>
+
+            <button type="submit">
+                Login
+            </button>
+
+        </form>
+
+        <p id="login-error"></p>
+
+    </main>
+
+    <footer>
+
+        <a href="#">
+            Impressum
+        </a>
+
+        |
+
+        <a href="#">
+            Datenschutzerklärung
+        </a>
+
+    </footer>
+
+    </section>
+
+    <section id="main-screen">
+    <header>
+        <h1>Berlin Sustainabillity App</h1>
+
+        <button id="logout-btn">
+            Logout
+        </button>
+    </header>
+
+    <main>
+
+        <h2 id="welcome-message">
+            Willkommen
+        </h2>
+
+        <div id="main-content">
+
+            <div id="locations-container">
+
+            </div>
+
+            <div id="map">
+
+            </div>
+
+</div>
+
+    <button 
+        id="go-add-screen"
+        style="display:none"
+    >
+        + Neuer Eintrag
+    </button>
+
+    </main>
+    </section>
+
+    <section id="add-screen">
+    <header>
+        <h1>Neuen Eintrag hinzufügen</h1>
+    </header>
+
+    <main>
+        <form id="add-form">
+
+            <div>
+                <label for="add-image">
+                    Bild
+                </label>
+
+                <input
+                    type="file"
+                    id="add-image"
+                    accept="image/*"
+                >
+            </div>
+
+            <div>
+                <label for="add-name">Name</label>
+                <input type="text" id="add-name" required>
+            </div>
+
+            <div>
+                <label for="add-description">Beschreibung</label>
+                <textarea id="add-description" required></textarea>
+            </div>
+
+            <div>
+                <label for="add-street">Straße</label>
+                <input type="text" id="add-street" required>
+            </div>
+
+            <div>
+                <label for="add-zip">PLZ</label>
+                <input type="text" id="add-zip" required>
+            </div>
+
+            <div>
+                <label for="add-city">Stadt</label>
+                <input type="text" id="add-city" required>
+            </div>
+
+            <div>
+                <label for="add-category">Kategorie</label>
+                <input type="text" id="add-category" required>
+            </div>
+
+            <br>
+
+            <button type="submit">
+                Speichern
+            </button>
+
+            <button
+                type="button"
+                id="cancel-add"
+            >
+                Abbrechen
+            </button>
+
+        </form>
+
+    </main>
+    </section>
+
+    <section id="detail-screen">
+    <header>
+        <h1>Detail Ansicht</h1>
+    </header>
+
+    <main>
+        <div id="detail-content">
+    
+        </div>
+
+        <button id="back-from-detail">
+            Zurück
+        </button>
+    </main>
+    </section>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+
 </body>
 </html>
