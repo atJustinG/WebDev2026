@@ -1,11 +1,130 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Berlin Infrastructure Reporter</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: #f4f4f4;
+        }
+
+        header {
+            background: #2c7a2c;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 { font-size: 1.4rem; }
+
+        main { flex: 1; padding: 2rem; }
+
+        footer {
+            background: #333;
+            color: #ccc;
+            text-align: center;
+            padding: 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        footer a { color: #aaa; text-decoration: none; margin: 0 0.5rem; }
+        footer a:hover { color: white; }
+
+        /* Login */
+        .login-main {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 60vh;
+        }
+
+        .login-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .login-box h2 { margin-bottom: 1.2rem; color: #333; }
+
+        input[type="text"], input[type="password"], input[type="file"],
+        select, textarea {
+            width: 100%;
+            padding: 0.6rem;
+            margin-bottom: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        button {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn-primary { background: #2c7a2c; color: white; }
+        .btn-danger  { background: #c0392b; color: white; }
+        .btn-secondary { background: #777; color: white; }
+
+        .error { color: red; margin-top: 0.5rem; font-size: 0.9rem; }
+
+        /* Main Screen */
+        .main-layout {
+            display: flex;
+            gap: 1rem;
+            height: calc(100vh - 120px);
+        }
+
+        .location-list {
+            width: 33%;
+            overflow-y: auto;
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .location-item {
+            padding: 0.8rem;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .location-item:hover { background: #f0f8f0; }
+
+        #map {
+            width: 67%;
+            border-radius: 8px;
+        }
+
+        .header-actions { display: flex; gap: 0.5rem; align-items: center; }
+    </style>
+
+    <!-- Leaflet für die Karte -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
-<div id="app"></div>
-<script src="app.js"></script>
+    <div id="app"></div>
+
+    <script src="state.js"></script>
+    <script src="login.js"></script>
+    <script src="main.js"></script>
+    <script src="addLocation.js"></script>
+    <script src="detail.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
