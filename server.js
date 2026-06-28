@@ -1,10 +1,10 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const {MongoClient} = require('mongodb');
 const app = express();
-const multer = require('multer');
-const {MongoClient, ObjectId} = require('mongodb');
-const fs = require('fs');
+app.use(express.json());
+app.use(express.static(path.join(__dirname, '.')));
 
 const MONGO_URI = process.env.MONGO_URI;
 const MONGO_USER = process.env.MONGO_USER;
@@ -12,8 +12,6 @@ const MONGO_PASSWORD = process.env.MONGO_PASSWORD;
 const PORT = process.env.PORT || 3000;
 let db;
 
-//bugfix cannot get /
-app.use(express.static(path.join(__dirname, '.')));
 
 async function connectDB() {
     const client = new MongoClient(MONGO_URI, {
@@ -26,21 +24,28 @@ async function connectDB() {
 }
 
 async function seedUsers() {
-    const col = db.collection('users');
-    if(await col.countDocuments() === 0){
-        await col.insertMany([
-            { username: 'admin', password: 'password', name: 'Mina', role: 'admin' },
-            { username: 'guest', password: 'password', name: 'Norman', role: 'user' }
-        ]);
-        console.log('Nutzer angelegt');
+    try {
+        const col = db.collection('users');
+        if(await col.countDocuments() === 0){
+            await col.insertMany([
+                { username: 'admin', password: 'password', name: 'Mina', role: 'admin' },
+                { username: 'guest', password: 'password', name: 'Norman', role: 'user' }
+            ]);
+            console.log('Nutzer angelegt');
+        } else {
+            console.log('Nutzer bereits vorhanden');
+        }
+    } catch (err) {
+        console.error('seedUsers Fehler:', err.message);
     }
 }
 
-connectDB().then(()=> {
+connectDB().then(() => {
+    app.use('/', require('./routes')(db));
     app.listen(PORT, () => console.log(`Server läuft auf http://localhost:${PORT}`));
-    }).catch(err =>{
-        console.log('MongoDB Fehler:', err.message);
-    });
+}).catch(err => {
+    console.log('MongoDB Fehler:', err.message);
+});
 
 
 
