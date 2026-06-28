@@ -7,14 +7,18 @@ const {MongoClient, ObjectId} = require('mongodb');
 const fs = require('fs');
 
 const MONGO_URI = process.env.MONGO_URI;
+const MONGO_USER = process.env.MONGO_USER;
+const MONGO_PASSWORD = process.env.MONGO_PASSWORD;
 const PORT = process.env.PORT || 3000;
-
 let db;
 
 
 
 async function connectDB() {
-    const client = new MongoClient(MONGO_URI);
+    const client = new MongoClient(MONGO_URI, {
+        auth: { username: MONGO_USER, password: MONGO_PASSWORD },
+        authMechanism: 'SCRAM-SHA-1'
+    });
     await client.connect();
     db = client.db('webdev2026');
     console.log('MongoDB verbunden');
