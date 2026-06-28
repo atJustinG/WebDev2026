@@ -12,7 +12,8 @@ const MONGO_PASSWORD = process.env.MONGO_PASSWORD;
 const PORT = process.env.PORT || 3000;
 let db;
 
-
+//bugfix cannot get /
+app.use(express.static(path.join(__dirname, '.')));
 
 async function connectDB() {
     const client = new MongoClient(MONGO_URI, {
