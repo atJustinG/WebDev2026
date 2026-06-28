@@ -4,15 +4,15 @@ async function showMain() {
             <h1>Berlin Infrastructure Reporter</h1>
             <div class="header-actions">
                 <span>Willkommen, ${currentUser.name}!</span>
-                ${currentUser.role === 'admin' ? '<button class="btn-primary" onclick="showAddLocation()">+ Standort hinzufügen</button>' : ''}
+                ${currentUser.role === 'admin' ? '<button class="btn-primary" onclick="showAddPanel()">+ Hinzufügen</button>' : ''}
                 <button class="btn-secondary" onclick="logout()">Logout</button>
             </div>
         </header>
 
         <main>
             <div class="main-layout">
-                <div class="location-list" id="location-list">
-                    <p>Lade Standorte...</p>
+                <div id="left-panel" class="left-panel">
+                    <p style="padding:1rem;">Lade Standorte...</p>
                 </div>
                 <div id="map"></div>
             </div>
@@ -24,7 +24,7 @@ async function showMain() {
     `;
 
     initMap();
-    await loadLocations();
+    await reloadLocations();
 }
 
 function initMap() {
@@ -32,28 +32,50 @@ function initMap() {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap'
     }).addTo(map);
+
+    map.on('click', (e) => {
+        if (currentUser.role === 'admin') {
+            showAddPanel(e.latlng.lat, e.latlng.lng);
+        }
+    });
 }
 
-async function loadLocations() {
+async function reloadLocations() {
     const res = await fetch('/loc');
     const locations = await res.json();
-    renderList(locations);
+    renderListPanel(locations);
     renderMarkers(locations);
 }
 
-function renderList(locations) {
-    const list = document.getElementById('location-list');
+function renderListPanel(locations) {
+    const panel = document.getElementById('left-panel');
+    if (!panel) return;
+
     if (locations.length === 0) {
-        list.innerHTML = '<p>Noch keine Standorte vorhanden.</p>';
+        panel.innerHTML = '<p style="padding:1rem;">Noch keine Standorte vorhanden.</p>';
         return;
     }
-    list.innerHTML = locations.map(loc => `
-        <div class="location-item" onclick="showDetail('${loc._id}')">
-            <strong>${loc.name}</strong>
-            <p>${loc.street}, ${loc.zip} ${loc.city}</p>
-            <p><em>${loc.category}</em></p>
-        </div>
-    `).join('');
+
+    panel.innerHTML = `
+        <div class="panel-header">${locations.length} Standort${locations.length !== 1 ? 'e' : ''}</div>
+        ${locations.map(loc => `
+            <div class="location-item"
+                 onmouseenter="highlightMarker('${loc._id}')"
+                 onmouseleave="unhighlightMarker()">
+                <div onclick="showDetailPanel('${loc._id}')">
+                    <strong>${loc.name}</strong>
+                    <p>${loc.street}, ${loc.zip} ${loc.city}</p>
+                    <p><em>${loc.category}</em></p>
+                </div>
+                ${currentUser.role === 'admin' ? `
+                    <div class="item-actions">
+                        <button class="btn-small btn-primary" onclick="showDetailPanel('${loc._id}')">✏️ Edit</button>
+                        <button class="btn-small btn-danger" onclick="deleteLocation('${loc._id}')">🗑️</button>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('')}
+    `;
 }
 
 function renderMarkers(locations) {
@@ -64,7 +86,17 @@ function renderMarkers(locations) {
             const marker = L.marker([loc.lat, loc.lng])
                 .addTo(map)
                 .bindPopup(`<strong>${loc.name}</strong><br>${loc.street}`);
+            marker._locId = loc._id;
             markers.push(marker);
         }
     });
+}
+
+function highlightMarker(id) {
+    const m = markers.find(m => m._locId === id);
+    if (m) m.openPopup();
+}
+
+function unhighlightMarker() {
+    if (map) map.closePopup();
 }

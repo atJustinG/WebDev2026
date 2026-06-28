@@ -14,6 +14,7 @@ module.exports = (db) => {
     const router = express.Router();
 
     // POST /login
+    //200 or 401
     router.post('/login', async (req, res) => {
         const { username, password } = req.body;
         const user = await db.collection('users').findOne({ username, password });
@@ -22,12 +23,14 @@ module.exports = (db) => {
     });
 
     // GET /loc
+    //return 200 + json array
     router.get('/loc', async (req, res) => {
         const locations = await db.collection('locations').find().toArray();
         res.json(locations);
     });
 
     // GET /loc/:id
+    //return 200+json obj
     router.get('/loc/:id', async (req, res) => {
         const loc = await db.collection('locations').findOne({ _id: new ObjectId(req.params.id) });
         if (!loc) return res.sendStatus(404);
@@ -35,6 +38,7 @@ module.exports = (db) => {
     });
 
     // POST /loc
+    //201 + Location Header
     router.post('/loc', async (req, res) => {
         const result = await db.collection('locations').insertOne(req.body);
         res.status(201).location(`/loc/${result.insertedId}`).send();

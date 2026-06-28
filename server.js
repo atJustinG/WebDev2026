@@ -46,6 +46,3 @@ connectDB().then(() => {
 }).catch(err => {
     console.log('MongoDB Fehler:', err.message);
 });
-
-
-
