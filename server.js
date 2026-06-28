@@ -16,7 +16,7 @@ let db;
 async function connectDB() {
     const client = new MongoClient(MONGO_URI);
     await client.connect();
-    db = client.db('DATENBANKNAME');
+    db = client.db('webdev2026');
     console.log('MongoDB verbunden');
     await seedUsers();
 }
