@@ -16,8 +16,7 @@ let db;
 
 async function connectDB() {
     const client = new MongoClient(MONGO_URI, {
-        auth: { username: MONGO_USER, password: MONGO_PASSWORD },
-        authMechanism: 'SCRAM-SHA-1'
+        auth: { username: MONGO_USER, password: MONGO_PASSWORD }
     });
     await client.connect();
     db = client.db('webdev2026');
