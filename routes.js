@@ -69,6 +69,10 @@ module.exports = (db) => {
     router.post('/loc/:id/image', upload.single('image'), async (req, res) => {
         const loc = await db.collection('locations').findOne({ _id: new ObjectId(req.params.id) });
         const existed = !!loc?.imageUrl;
+        if (loc?.imageUrl) {
+            const oldPath = path.join(__dirname, loc.imageUrl);
+            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        }
         const imageUrl = `/uploads/${req.file.filename}`;
         await db.collection('locations').updateOne(
             { _id: new ObjectId(req.params.id) },

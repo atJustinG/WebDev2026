@@ -4,9 +4,12 @@ async function showDetailPanel(id) {
     const isAdmin = currentUser.role === 'admin';
 
     document.getElementById('left-panel').innerHTML = `
-        <div class="panel-header">Standort Details</div>
+        <div class="panel-header">${t('locationDetails')}</div>
         <div class="panel-form">
-            ${loc.imageUrl ? `<img src="${loc.imageUrl}" style="width:100%; border-radius:4px; margin-bottom:0.5rem;" />` : ''}
+            ${loc.imageUrl ? `
+                <img src="${loc.imageUrl}" style="width:100%; border-radius:4px; margin-bottom:0.4rem;" />
+                ${isAdmin ? `<button type="button" class="btn-danger btn-small" style="margin-bottom:0.8rem;" onclick="deleteImage('${loc._id}', this)">${t('deleteImageBtn')}</button>` : ''}
+            ` : ''}
             <form id="detail-form">
                 <input type="text" id="loc-name" value="${loc.name}" ${!isAdmin ? 'disabled' : ''} />
                 <textarea id="loc-desc" rows="2" ${!isAdmin ? 'disabled' : ''}>${loc.description || ''}</textarea>
@@ -14,20 +17,20 @@ async function showDetailPanel(id) {
                 <input type="text" id="loc-zip" value="${loc.zip}" ${!isAdmin ? 'disabled' : ''} />
                 <input type="text" id="loc-city" value="${loc.city}" ${!isAdmin ? 'disabled' : ''} />
                 <select id="loc-category" ${!isAdmin ? 'disabled' : ''}>
-                    <option ${loc.category === 'Fehlender Radweg' ? 'selected' : ''}>Fehlender Radweg</option>
-                    <option ${loc.category === 'Kein Grünbereich' ? 'selected' : ''}>Kein Grünbereich</option>
-                    <option ${loc.category === 'Schlechte ÖPNV-Anbindung' ? 'selected' : ''}>Schlechte ÖPNV-Anbindung</option>
-                    <option ${loc.category === 'Sonstiges' ? 'selected' : ''}>Sonstiges</option>
+                    <option value="Fehlender Radweg" ${loc.category === 'Fehlender Radweg' ? 'selected' : ''}>${t('catBikeLane')}</option>
+                    <option value="Kein Grünbereich" ${loc.category === 'Kein Grünbereich' ? 'selected' : ''}>${t('catGreen')}</option>
+                    <option value="Schlechte ÖPNV-Anbindung" ${loc.category === 'Schlechte ÖPNV-Anbindung' ? 'selected' : ''}>${t('catTransport')}</option>
+                    <option value="Sonstiges" ${loc.category === 'Sonstiges' ? 'selected' : ''}>${t('catOther')}</option>
                 </select>
                 ${isAdmin ? '<input type="file" id="loc-image" accept="image/*" />' : ''}
                 <p class="error" id="detail-error"></p>
                 <div class="form-actions">
                     ${isAdmin ? `
-                        <button type="submit" class="btn-primary">Aktualisieren</button>
-                        <button type="button" class="btn-danger" onclick="deleteLocation('${loc._id}')">Löschen</button>
+                        <button type="submit" class="btn-primary">${t('update')}</button>
+                        <button type="button" class="btn-danger" onclick="deleteLocation('${loc._id}', this)">${t('delete')}</button>
                     ` : ''}
                     <button type="button" class="btn-secondary" onclick="reloadLocations()">
-                        ${isAdmin ? 'Abbrechen' : 'Schließen'}
+                        ${isAdmin ? t('cancel') : t('close')}
                     </button>
                 </div>
             </form>
@@ -44,7 +47,7 @@ async function showDetailPanel(id) {
             const coords = await geocode(`${street}, ${zip} ${city}`);
 
             if (!coords) {
-                document.getElementById('detail-error').textContent = 'Adresse konnte nicht gefunden werden.';
+                document.getElementById('detail-error').textContent = t('addrNotFound');
                 return;
             }
 
@@ -73,8 +76,16 @@ async function showDetailPanel(id) {
     }
 }
 
-async function deleteLocation(id) {
-    if (!confirm('Standort wirklich löschen?')) return;
-    await fetch(`/loc/${id}`, { method: 'DELETE' });
-    await reloadLocations();
+function deleteLocation(id, trigger) {
+    showInlineConfirm(trigger, t('confirmDeleteLocation'), async () => {
+        await fetch(`/loc/${id}`, { method: 'DELETE' });
+        await reloadLocations();
+    });
+}
+
+function deleteImage(id, trigger) {
+    showInlineConfirm(trigger, t('confirmDeleteImage'), async () => {
+        await fetch(`/loc/${id}/image`, { method: 'DELETE' });
+        await showDetailPanel(id);
+    });
 }

@@ -1,21 +1,26 @@
 function showLogin() {
     document.getElementById('app').innerHTML = `
-        <header><h1>Berlin Infrastructure Reporter</h1></header>
+        <header>
+            <h1>Berlin Infrastructure Reporter</h1>
+            <div class="header-actions">
+                ${renderLangSwitcher()}
+            </div>
+        </header>
 
         <main class="login-main">
             <div class="login-box">
-                <h2>Anmelden</h2>
+                <h2>${t('loginTitle')}</h2>
                 <form id="login-form">
-                    <input type="text" id="username" placeholder="Benutzername" required />
-                    <input type="password" id="password" placeholder="Passwort" required />
-                    <button type="submit" class="btn-primary">Login</button>
+                    <input type="text" id="username" placeholder="${t('username')}" required />
+                    <input type="password" id="password" placeholder="${t('password')}" required />
+                    <button type="submit" class="btn-primary">${t('loginBtn')}</button>
                     <p class="error" id="login-error"></p>
                 </form>
             </div>
         </main>
 
         <footer>
-            <a href="#">Impressum</a> | <a href="#">Datenschutzerklärung</a>
+            <a href="#">${t('imprint')}</a> | <a href="#">${t('privacy')}</a>
         </footer>
     `;
 
@@ -32,9 +37,10 @@ function showLogin() {
 
         if (res.ok) {
             currentUser = await res.json();
+            sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
             showMain();
         } else {
-            document.getElementById('login-error').textContent = 'Falscher Benutzername oder Passwort.';
+            document.getElementById('login-error').textContent = t('loginError');
         }
     });
 }

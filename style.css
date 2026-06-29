@@ -1,0 +1,242 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+header {
+    background: #2c7a2c;
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 { font-size: 1.4rem; }
+
+main { flex: 1; padding: 2rem; }
+
+footer {
+    background: #333;
+    color: #ccc;
+    text-align: center;
+    padding: 0.8rem;
+    font-size: 0.85rem;
+}
+
+footer a { color: #aaa; text-decoration: none; margin: 0 0.5rem; }
+footer a:hover { color: white; }
+
+/* Login */
+.login-main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+}
+
+.login-box {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    width: 100%;
+    max-width: 360px;
+}
+
+.login-box h2 { margin-bottom: 1.2rem; color: #333; }
+
+input[type="text"], input[type="password"], input[type="file"],
+select, textarea {
+    width: 100%;
+    padding: 0.6rem;
+    margin-bottom: 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+button {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn-primary { background: #2c7a2c; color: white; }
+.btn-danger  { background: #c0392b; color: white; }
+.btn-secondary { background: #777; color: white; }
+
+.error { color: red; margin-top: 0.5rem; font-size: 0.9rem; }
+
+/* Main Screen */
+.main-layout {
+    display: flex;
+    gap: 1rem;
+    height: calc(100vh - 120px);
+}
+
+.left-column {
+    width: 33%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.left-panel {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    background: white;
+    border-radius: 8px;
+}
+
+.location-item {
+    padding: 0.8rem;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+.location-item:hover { background: #f0f8f0; }
+
+#map {
+    flex: 1;
+    border-radius: 8px;
+}
+
+.header-actions { display: flex; gap: 0.5rem; align-items: center; }
+
+.panel-header {
+    padding: 0.7rem 1rem;
+    font-weight: bold;
+    border-bottom: 1px solid #eee;
+    background: #f9f9f9;
+    border-radius: 8px 8px 0 0;
+}
+
+.panel-form {
+    padding: 0.8rem;
+}
+
+.panel-form input, .panel-form select, .panel-form textarea {
+    font-size: 0.9rem;
+    padding: 0.4rem;
+    margin-bottom: 0.5rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+}
+
+.item-actions {
+    display: flex;
+    gap: 0.3rem;
+    margin-top: 0.3rem;
+}
+
+.btn-small {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.78rem;
+}
+
+.hint { color: green; font-size: 0.85rem; margin-bottom: 0.4rem; }
+
+/* Language Switcher */
+.lang-switcher {
+    position: relative;
+}
+
+.lang-flag {
+    width: 24px;
+    height: 18px;
+    object-fit: cover;
+    border-radius: 2px;
+    display: block;
+}
+
+.lang-btn {
+    background: none;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 0;
+    transition: opacity 0.15s;
+}
+
+.lang-btn:hover {
+    opacity: 0.8;
+}
+
+.lang-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+    overflow: hidden;
+    z-index: 1000;
+    min-width: 140px;
+}
+
+.lang-dropdown.open {
+    display: block;
+    animation: slideDown 0.15s ease-out;
+}
+
+.lang-option {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.65rem 1rem;
+    background: none;
+    border: none;
+    border-radius: 0;
+    text-align: left;
+    font-size: 0.95rem;
+    cursor: pointer;
+    color: #222;
+}
+
+.lang-option:hover:not(:disabled) {
+    background: #f0f8f0;
+}
+
+.lang-option.lang-active {
+    color: #aaa;
+    cursor: default;
+}
+
+/* Inline confirm */
+.inline-confirm {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.6rem;
+    background: #fff3f3;
+    border: 1px solid #e74c3c;
+    border-radius: 4px;
+    font-size: 0.82rem;
+    color: #c0392b;
+    margin-top: 0.4rem;
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}

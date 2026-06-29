@@ -2,29 +2,27 @@ function showAddPanel(lat = null, lng = null) {
     const panel = document.getElementById('left-panel');
 
     panel.innerHTML = `
-        <div class="panel-header">Neuer Standort</div>
+        <div class="panel-header">${t('newLocation')}</div>
         <div class="panel-form">
-            <p id="add-hint" class="hint">
-                ${lat && lng ? '📍 Position gewählt — Adresse wird geladen...' : ''}
-            </p>
+            <p id="add-hint" class="hint">${lat && lng ? t('hintPosLoading') : ''}</p>
             <form id="add-form">
-                <input type="text" id="loc-name" placeholder="Titel" required />
-                <textarea id="loc-desc" placeholder="Beschreibung" rows="2"></textarea>
-                <input type="text" id="loc-street" placeholder="Straße" required />
-                <input type="text" id="loc-zip" placeholder="PLZ" required />
-                <input type="text" id="loc-city" placeholder="Stadt" required />
+                <input type="text" id="loc-name" placeholder="${t('titlePlaceholder')}" required />
+                <textarea id="loc-desc" placeholder="${t('descPlaceholder')}" rows="2"></textarea>
+                <input type="text" id="loc-street" placeholder="${t('streetPlaceholder')}" required />
+                <input type="text" id="loc-zip" placeholder="${t('zipPlaceholder')}" required />
+                <input type="text" id="loc-city" placeholder="${t('cityPlaceholder')}" required />
                 <select id="loc-category">
-                    <option value="">Kategorie wählen</option>
-                    <option>Fehlender Radweg</option>
-                    <option>Kein Grünbereich</option>
-                    <option>Schlechte ÖPNV-Anbindung</option>
-                    <option>Sonstiges</option>
+                    <option value="">${t('categoryPlaceholder')}</option>
+                    <option value="Fehlender Radweg">${t('catBikeLane')}</option>
+                    <option value="Kein Grünbereich">${t('catGreen')}</option>
+                    <option value="Schlechte ÖPNV-Anbindung">${t('catTransport')}</option>
+                    <option value="Sonstiges">${t('catOther')}</option>
                 </select>
                 <input type="file" id="loc-image" accept="image/*" />
                 <p class="error" id="add-error"></p>
                 <div class="form-actions">
-                    <button type="submit" class="btn-primary">Speichern</button>
-                    <button type="button" class="btn-secondary" onclick="reloadLocations()">Abbrechen</button>
+                    <button type="submit" class="btn-primary">${t('save')}</button>
+                    <button type="button" class="btn-secondary" onclick="reloadLocations()">${t('cancel')}</button>
                 </div>
             </form>
         </div>
@@ -37,9 +35,9 @@ function showAddPanel(lat = null, lng = null) {
                 document.getElementById('loc-street').value = addr.street;
                 document.getElementById('loc-zip').value = addr.zip;
                 document.getElementById('loc-city').value = addr.city;
-                hint.textContent = '📍 Adresse gefunden — bitte prüfen und ergänzen.';
+                hint.textContent = t('hintAddrFound');
             } else {
-                hint.textContent = '📍 Position gewählt — Adresse nicht gefunden, bitte manuell eingeben.';
+                hint.textContent = t('hintAddrNotFound');
             }
         });
     }
@@ -53,7 +51,7 @@ function showAddPanel(lat = null, lng = null) {
             const address = `${document.getElementById('loc-street').value}, ${document.getElementById('loc-zip').value} ${document.getElementById('loc-city').value}`;
             coords = await geocode(address);
             if (!coords) {
-                document.getElementById('add-error').textContent = 'Adresse konnte nicht gefunden werden.';
+                document.getElementById('add-error').textContent = t('addrNotFound');
                 return;
             }
         }
