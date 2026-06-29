@@ -82,7 +82,7 @@ button {
 .main-layout {
     display: flex;
     gap: 1rem;
-    height: calc(100vh - 120px);
+    height: calc(100vh - 175px);
 }
 
 .left-column {
