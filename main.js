@@ -97,6 +97,7 @@ function renderMarkers(locations) {
                 .addTo(map)
                 .bindPopup(`<strong>${loc.name}</strong><br>${loc.street}`);
             marker._locId = loc._id;
+            marker.on('click', () => showDetailPanel(loc._id));
             markers.push(marker);
         }
     });
