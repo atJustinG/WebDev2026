@@ -40,12 +40,13 @@ function initMap() {
 
     map.on('click', (e) => {
         if (currentUser.role === 'admin') {
-            showAddPanel(e.latlng.lat, e.latlng.lng);
+            showAddPopup(e.latlng.lat, e.latlng.lng);
         }
     });
 }
 
 async function reloadLocations() {
+    if (map) map.closePopup();
     const res = await fetch('/loc');
     const locations = await res.json();
     renderListPanel(locations);
@@ -67,17 +68,22 @@ function renderListPanel(locations) {
             <div class="location-item"
                  onmouseenter="highlightMarker('${loc._id}')"
                  onmouseleave="unhighlightMarker()">
-                <div onclick="showDetailPanel('${loc._id}')">
-                    <strong>${loc.name}</strong>
-                    <p>${loc.street}, ${loc.zip} ${loc.city}</p>
-                    <p><em>${translateCategory(loc.category)}</em></p>
-                </div>
-                ${currentUser.role === 'admin' ? `
-                    <div class="item-actions">
-                        <button class="btn-small btn-primary" onclick="showDetailPanel('${loc._id}')">${t('editBtn')}</button>
-                        <button class="btn-small btn-danger" onclick="deleteLocation('${loc._id}', this)">🗑️</button>
+                <div class="location-item-body">
+                    ${loc.imageUrl ? `<img class="location-thumb" src="${loc.imageUrl}" alt="" />` : ''}
+                    <div class="location-item-text">
+                        <div onclick="showDetailPopup('${loc._id}', ${loc.lat || 0}, ${loc.lng || 0})">
+                            <strong>${loc.name}</strong>
+                            <p>${loc.street}, ${loc.zip} ${loc.city}</p>
+                            <p><em>${translateCategory(loc.category)}</em></p>
+                        </div>
+                        ${currentUser.role === 'admin' ? `
+                            <div class="item-actions">
+                                <button class="btn-small btn-primary" onclick="showDetailPopup('${loc._id}', ${loc.lat || 0}, ${loc.lng || 0})">${t('editBtn')}</button>
+                                <button class="btn-small btn-danger" onclick="deleteLocation('${loc._id}', this)">🗑️</button>
+                            </div>
+                        ` : ''}
                     </div>
-                ` : ''}
+                </div>
             </div>
         `).join('')}
     `;
@@ -90,8 +96,9 @@ function renderMarkers(locations) {
         if (loc.lat && loc.lng) {
             const marker = L.marker([loc.lat, loc.lng])
                 .addTo(map)
-                .bindPopup(`<strong>${loc.name}</strong><br>${loc.street}`);
+                .bindTooltip(`<strong>${loc.name}</strong><br>${loc.street}`);
             marker._locId = loc._id;
+            marker.on('click', () => showDetailPopup(loc._id, loc.lat, loc.lng));
             markers.push(marker);
         }
     });
@@ -99,9 +106,9 @@ function renderMarkers(locations) {
 
 function highlightMarker(id) {
     const m = markers.find(m => m._locId === id);
-    if (m) m.openPopup();
+    if (m) m.openTooltip();
 }
 
 function unhighlightMarker() {
-    if (map) map.closePopup();
+    markers.forEach(m => m.closeTooltip());
 }

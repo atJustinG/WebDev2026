@@ -86,6 +86,84 @@ function showAddPanel(lat = null, lng = null) {
     });
 }
 
+function showAddPopup(lat, lng) {
+    const formHtml = `
+        <div class="panel-header">${t('newLocation')}</div>
+        <div class="panel-form">
+            <p id="popup-add-hint" class="hint">${t('hintPosLoading')}</p>
+            <form id="popup-add-form">
+                <input type="text" id="popup-loc-name" placeholder="${t('titlePlaceholder')}" required />
+                <textarea id="popup-loc-desc" placeholder="${t('descPlaceholder')}" rows="2"></textarea>
+                <input type="text" id="popup-loc-street" placeholder="${t('streetPlaceholder')}" required />
+                <input type="text" id="popup-loc-zip" placeholder="${t('zipPlaceholder')}" required />
+                <input type="text" id="popup-loc-city" placeholder="${t('cityPlaceholder')}" required />
+                <select id="popup-loc-category">
+                    <option value="">${t('categoryPlaceholder')}</option>
+                    <option value="Fehlender Radweg">${t('catBikeLane')}</option>
+                    <option value="Kein Grünbereich">${t('catGreen')}</option>
+                    <option value="Schlechte ÖPNV-Anbindung">${t('catTransport')}</option>
+                    <option value="Sonstiges">${t('catOther')}</option>
+                </select>
+                <input type="file" id="popup-loc-image" accept="image/*" />
+                <p class="error" id="popup-add-error"></p>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">${t('save')}</button>
+                    <button type="button" class="btn-secondary" onclick="map.closePopup()">${t('cancel')}</button>
+                </div>
+            </form>
+        </div>`;
+
+    L.popup({ maxWidth: 310, className: 'map-form-popup' })
+        .setLatLng([lat, lng])
+        .setContent(formHtml)
+        .openOn(map);
+
+    map.once('popupopen', () => {
+        reverseGeocode(lat, lng).then(addr => {
+            const hint = document.getElementById('popup-add-hint');
+            if (!hint) return;
+            if (addr) {
+                document.getElementById('popup-loc-street').value = addr.street;
+                document.getElementById('popup-loc-zip').value = addr.zip;
+                document.getElementById('popup-loc-city').value = addr.city;
+                hint.textContent = t('hintAddrFound');
+            } else {
+                hint.textContent = t('hintAddrNotFound');
+            }
+        });
+
+        document.getElementById('popup-add-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const body = {
+                name: document.getElementById('popup-loc-name').value,
+                description: document.getElementById('popup-loc-desc').value,
+                street: document.getElementById('popup-loc-street').value,
+                zip: document.getElementById('popup-loc-zip').value,
+                city: document.getElementById('popup-loc-city').value,
+                category: document.getElementById('popup-loc-category').value,
+                lat, lng
+            };
+            const res = await fetch('/loc', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (res.ok) {
+                const id = res.headers.get('Location').split('/').pop();
+                const imageFile = document.getElementById('popup-loc-image').files[0];
+                if (imageFile) {
+                    const formData = new FormData();
+                    formData.append('image', imageFile);
+                    await fetch(`/loc/${id}/image`, { method: 'POST', body: formData });
+                }
+                await reloadLocations();
+            } else {
+                document.getElementById('popup-add-error').textContent = t('addrNotFound');
+            }
+        });
+    });
+}
+
 async function geocode(address) {
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
     const res = await fetch(url, { headers: { 'Accept-Language': 'de' } });
