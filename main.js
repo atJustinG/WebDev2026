@@ -67,17 +67,22 @@ function renderListPanel(locations) {
             <div class="location-item"
                  onmouseenter="highlightMarker('${loc._id}')"
                  onmouseleave="unhighlightMarker()">
-                <div onclick="showDetailPanel('${loc._id}')">
-                    <strong>${loc.name}</strong>
-                    <p>${loc.street}, ${loc.zip} ${loc.city}</p>
-                    <p><em>${translateCategory(loc.category)}</em></p>
-                </div>
-                ${currentUser.role === 'admin' ? `
-                    <div class="item-actions">
-                        <button class="btn-small btn-primary" onclick="showDetailPanel('${loc._id}')">${t('editBtn')}</button>
-                        <button class="btn-small btn-danger" onclick="deleteLocation('${loc._id}', this)">🗑️</button>
+                <div class="location-item-body">
+                    <div class="location-item-text">
+                        <div onclick="showDetailPanel('${loc._id}')">
+                            <strong>${loc.name}</strong>
+                            <p>${loc.street}, ${loc.zip} ${loc.city}</p>
+                            <p><em>${translateCategory(loc.category)}</em></p>
+                        </div>
+                        ${currentUser.role === 'admin' ? `
+                            <div class="item-actions">
+                                <button class="btn-small btn-primary" onclick="showDetailPanel('${loc._id}')">${t('editBtn')}</button>
+                                <button class="btn-small btn-danger" onclick="deleteLocation('${loc._id}', this)">🗑️</button>
+                            </div>
+                        ` : ''}
                     </div>
-                ` : ''}
+                    ${loc.imageUrl ? `<img class="location-thumb" src="${loc.imageUrl}" alt="" />` : ''}
+                </div>
             </div>
         `).join('')}
     `;

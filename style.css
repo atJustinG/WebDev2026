@@ -152,6 +152,23 @@ button {
 
 .hint { color: green; font-size: 0.85rem; margin-bottom: 0.4rem; }
 
+/* List thumbnail */
+.location-item-body {
+    display: flex;
+    gap: 0.55rem;
+    align-items: center;
+}
+
+.location-item-text { flex: 1; min-width: 0; }
+
+.location-thumb {
+    width: 54px;
+    height: 54px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
 /* Language Switcher */
 .lang-switcher {
     position: relative;
