@@ -38,6 +38,8 @@ function initMap() {
         attribution: '© OpenStreetMap'
     }).addTo(map);
 
+    // Admin shortcut: clicking the map opens the Add form pre-filled via reverse geocoding,
+    // instead of typing the address manually.
     map.on('click', (e) => {
         if (currentUser.role === 'admin') {
             showAddPanel(e.latlng.lat, e.latlng.lng);
@@ -104,6 +106,7 @@ function renderMarkers(locations) {
 }
 
 function highlightMarker(id) {
+    // Leaflet markers have no built-in "highlight" state, so we reuse the popup to draw attention.
     const m = markers.find(m => m._locId === id);
     if (m) m.openPopup();
 }

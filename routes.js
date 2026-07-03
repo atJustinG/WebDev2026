@@ -6,6 +6,7 @@ const fs = require('fs');
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'uploads/'),
+    // Date.now() prefix avoids collisions if two uploads share the same original filename.
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
 const upload = multer({ storage });
@@ -46,6 +47,7 @@ module.exports = (db) => {
 
     // PUT /loc/:id
     router.put('/loc/:id', async (req, res) => {
+        // Strip _id so the frontend's full location object can't overwrite Mongo's own immutable id.
         const { _id, ...update } = req.body;
         await db.collection('locations').updateOne(
             { _id: new ObjectId(req.params.id) },
@@ -69,6 +71,7 @@ module.exports = (db) => {
     router.post('/loc/:id/image', upload.single('image'), async (req, res) => {
         const loc = await db.collection('locations').findOne({ _id: new ObjectId(req.params.id) });
         const existed = !!loc?.imageUrl;
+        // Remove the previous file first so replacing an image never leaves an orphaned upload on disk.
         if (loc?.imageUrl) {
             const oldPath = path.join(__dirname, loc.imageUrl);
             if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);

@@ -44,6 +44,8 @@ async function showDetailPanel(id) {
             const street = document.getElementById('loc-street').value;
             const zip = document.getElementById('loc-zip').value;
             const city = document.getElementById('loc-city').value;
+            // Re-geocode on every update (not just when the address changed) to keep this simple —
+            // it's what makes "coordinates update automatically" work per the spec.
             const coords = await geocode(`${street}, ${zip} ${city}`);
 
             if (!coords) {

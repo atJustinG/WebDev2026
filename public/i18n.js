@@ -90,6 +90,8 @@ const LANGS = {
     de: { flag: '<img src="https://flagcdn.com/24x18/de.png" alt="DE" class="lang-flag">', label: 'Deutsch' }
 };
 
+// Categories are always stored in German in the DB (fixed values from the Add/Edit form),
+// so this maps them to i18n keys for display in the currently selected language.
 const CAT_KEYS = {
     'Fehlender Radweg': 'catBikeLane',
     'Kein Grünbereich': 'catGreen',

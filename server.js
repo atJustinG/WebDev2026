@@ -4,7 +4,10 @@ const path = require('path');
 const {MongoClient} = require('mongodb');
 const app = express();
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '.')));
+app.use(express.static(path.join(__dirname, 'public')));
+// Uploaded images live outside public/ (only reachable through this route),
+// so raw source files (server.js, routes.js, .env) are never served statically.
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const MONGO_URI = process.env.MONGO_URI;
 const MONGO_USER = process.env.MONGO_USER;
@@ -26,6 +29,7 @@ async function connectDB() {
 async function seedUsers() {
     try {
         const col = db.collection('users');
+        // Guard so restarting the server doesn't re-insert the fixed accounts every time.
         if(await col.countDocuments() === 0){
             await col.insertMany([
                 { username: 'admin', password: 'password', name: 'Mina', role: 'admin' },

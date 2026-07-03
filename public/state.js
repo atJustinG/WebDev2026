@@ -2,6 +2,7 @@ let currentUser = null;
 let map = null;
 let markers = [];
 
+// Replaces the native confirm() dialog with an inline UI element next to the button that triggered it.
 function showInlineConfirm(trigger, message, onConfirm) {
     document.querySelectorAll('.inline-confirm').forEach(el => el.remove());
 

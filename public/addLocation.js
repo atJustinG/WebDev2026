@@ -28,6 +28,8 @@ function showAddPanel(lat = null, lng = null) {
         </div>
     `;
 
+    // Only pre-fill via reverse geocoding when opened from a map click (lat/lng given);
+    // opening via the "Add" button leaves the address fields empty for manual entry.
     if (lat && lng) {
         reverseGeocode(lat, lng).then(addr => {
             const hint = document.getElementById('add-hint');
@@ -74,6 +76,8 @@ function showAddPanel(lat = null, lng = null) {
         });
 
         if (res.ok) {
+            // The image upload needs the new location's id, which only exists after
+            // the location itself was created, hence the separate follow-up request.
             const id = res.headers.get('Location').split('/').pop();
             const imageFile = document.getElementById('loc-image').files[0];
             if (imageFile) {
@@ -86,6 +90,7 @@ function showAddPanel(lat = null, lng = null) {
     });
 }
 
+// Nominatim (OpenStreetMap) geocoding API — free, no API key required.
 async function geocode(address) {
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
     const res = await fetch(url, { headers: { 'Accept-Language': 'de' } });

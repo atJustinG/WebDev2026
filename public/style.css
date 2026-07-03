@@ -257,3 +257,34 @@ button {
     from { opacity: 0; transform: translateY(-8px); }
     to   { opacity: 1; transform: translateY(0); }
 }
+
+/* Responsive */
+@media (max-width: 900px) {
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.6rem;
+        padding: 1rem;
+    }
+
+    main { padding: 1rem; }
+
+    .main-layout {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .left-column { width: 100%; }
+
+    .left-panel { max-height: 45vh; }
+
+    #map { height: 45vh; }
+}
+
+@media (max-width: 480px) {
+    .login-box { padding: 1.2rem; }
+
+    .form-actions, .item-actions { flex-wrap: wrap; }
+
+    header h1 { font-size: 1.15rem; }
+}
