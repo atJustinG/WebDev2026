@@ -1,8 +1,18 @@
+// ============================================================
+// detail.js — Screen 4: Detail / Edit
+// Ein Screen für beide Rollen: der Admin bekommt editierbare Felder
+// mit Update/Löschen/Abbrechen, der Gast dieselbe Ansicht schreibgeschützt
+// (disabled) mit nur einem Schließen-Button.
+// ============================================================
+
 async function showDetailPanel(id) {
+    // Aktuelle Daten des Standorts frisch vom Backend holen (GET /loc/:id)
     const res = await fetch(`/loc/${id}`);
     const loc = await res.json();
     const isAdmin = currentUser.role === 'admin';
 
+    // Trick: statt zwei getrennter Ansichten wird EIN Formular gerendert und
+    // über ${!isAdmin ? 'disabled' : ''} pro Feld entschieden, ob es editierbar ist.
     document.getElementById('left-panel').innerHTML = `
         <div class="panel-header">${t('locationDetails')}</div>
         <div class="panel-form">
@@ -37,6 +47,7 @@ async function showDetailPanel(id) {
         </div>
     `;
 
+    // Submit-Handler nur für den Admin — der Gast hat gar keinen Update-Button
     if (isAdmin) {
         document.getElementById('detail-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -46,6 +57,8 @@ async function showDetailPanel(id) {
             const city = document.getElementById('loc-city').value;
             // Re-geocode on every update (not just when the address changed) to keep this simple —
             // it's what makes "coordinates update automatically" work per the spec.
+            // => Anforderung: ändert der Admin die Adresse, aktualisieren sich die
+            //    Koordinaten automatisch. Wir geocoden einfach bei jedem Update.
             const coords = await geocode(`${street}, ${zip} ${city}`);
 
             if (!coords) {
@@ -53,6 +66,7 @@ async function showDetailPanel(id) {
                 return;
             }
 
+            // PUT /loc/:id mit dem kompletten aktualisierten Standort
             await fetch(`/loc/${loc._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -66,6 +80,7 @@ async function showDetailPanel(id) {
                 })
             });
 
+            // Wurde eine neue Bilddatei gewählt, ersetzt POST /loc/:id/image das alte Bild
             const imageFile = document.getElementById('loc-image').files[0];
             if (imageFile) {
                 const formData = new FormData();
@@ -73,21 +88,27 @@ async function showDetailPanel(id) {
                 await fetch(`/loc/${loc._id}/image`, { method: 'POST', body: formData });
             }
 
+            // Zurück zur Hauptansicht — Liste und Karte zeigen sofort den neuen Stand
             await reloadLocations();
         });
     }
 }
 
+// Standort löschen — mit Inline-Bestätigung statt confirm()-Popup (siehe state.js).
+// Wird aus der Liste UND aus dem Detail-Screen aufgerufen.
 function deleteLocation(id, trigger) {
     showInlineConfirm(trigger, t('confirmDeleteLocation'), async () => {
+        // Das Backend löscht dabei auch die Bilddatei vom Server (Anforderung)
         await fetch(`/loc/${id}`, { method: 'DELETE' });
-        await reloadLocations();
+        await reloadLocations(); // Standort verschwindet aus Liste UND Karte
     });
 }
 
+// Nur das Bild eines Standorts löschen, der Standort selbst bleibt bestehen.
 function deleteImage(id, trigger) {
     showInlineConfirm(trigger, t('confirmDeleteImage'), async () => {
         await fetch(`/loc/${id}/image`, { method: 'DELETE' });
+        // Detail-Ansicht neu laden, damit das Bild sofort verschwindet
         await showDetailPanel(id);
     });
 }

@@ -2,6 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <!-- viewport-Meta: Grundlage für responsives Design auf Mobilgeräten -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Berlin Infrastructure Reporter</title>
     <link rel="stylesheet" href="style.css" />
@@ -11,8 +12,13 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
+    <!-- SPA: die EINZIGE HTML-Datei der App. Dieses leere Div ist der
+         Container, dessen Inhalt JavaScript je nach Screen komplett austauscht -->
     <div id="app"></div>
 
+    <!-- Reihenfolge ist wichtig: erst Hilfsfunktionen und globaler Zustand
+         (i18n, state), dann die Screens, und app.js als Startpunkt zuletzt,
+         weil es Funktionen aus den anderen Dateien aufruft -->
     <script src="i18n.js"></script>
     <script src="state.js"></script>
     <script src="login.js"></script>

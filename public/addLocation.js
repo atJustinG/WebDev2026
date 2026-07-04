@@ -1,6 +1,15 @@
+// ============================================================
+// addLocation.js — Screen 3: Standort hinzufügen (nur Admin)
+// Formular im linken Panel + Geocoding-Funktionen (Adresse ↔ Koordinaten).
+// ============================================================
+
+// lat/lng sind optional: kommen sie mit (Klick auf die Karte), wird die
+// Adresse per Reverse Geocoding vorausgefüllt; ohne (Add-Button) bleibt alles leer.
 function showAddPanel(lat = null, lng = null) {
     const panel = document.getElementById('left-panel');
 
+    // Das Formular ersetzt die Liste im linken Panel — die Karte bleibt sichtbar.
+    // required-Attribute → der Browser prüft Pflichtfelder schon vor dem Submit.
     panel.innerHTML = `
         <div class="panel-header">${t('newLocation')}</div>
         <div class="panel-form">
@@ -30,6 +39,7 @@ function showAddPanel(lat = null, lng = null) {
 
     // Only pre-fill via reverse geocoding when opened from a map click (lat/lng given);
     // opening via the "Add" button leaves the address fields empty for manual entry.
+    // => Nur beim Karten-Klick: Koordinaten → Adresse auflösen und Felder vorbefüllen.
     if (lat && lng) {
         reverseGeocode(lat, lng).then(addr => {
             const hint = document.getElementById('add-hint');
@@ -45,19 +55,24 @@ function showAddPanel(lat = null, lng = null) {
     }
 
     document.getElementById('add-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
+        e.preventDefault(); // kein Seiten-Reload (SPA)
 
+        // Vom Karten-Klick haben wir die Koordinaten schon — sonst müssen
+        // sie per Geocoding aus der eingegebenen Adresse ermittelt werden.
         let coords = (lat && lng) ? { lat, lng } : null;
 
         if (!coords) {
             const address = `${document.getElementById('loc-street').value}, ${document.getElementById('loc-zip').value} ${document.getElementById('loc-city').value}`;
             coords = await geocode(address);
+            // Anforderung: Adresse nicht gefunden → Fehlermeldung anzeigen,
+            // Formular bleibt offen (return bricht nur den Submit ab)
             if (!coords) {
                 document.getElementById('add-error').textContent = t('addrNotFound');
                 return;
             }
         }
 
+        // Objekt mit exakt den Feldern, die die locations-Collection laut Aufgabe braucht
         const body = {
             name: document.getElementById('loc-name').value,
             description: document.getElementById('loc-desc').value,
@@ -78,33 +93,45 @@ function showAddPanel(lat = null, lng = null) {
         if (res.ok) {
             // The image upload needs the new location's id, which only exists after
             // the location itself was created, hence the separate follow-up request.
+            // => Die id des neuen Standorts steckt im Location-Header ("/loc/<id>"),
+            //    split('/').pop() nimmt das letzte Stück des Pfads.
             const id = res.headers.get('Location').split('/').pop();
             const imageFile = document.getElementById('loc-image').files[0];
             if (imageFile) {
+                // Bilder gehen als FormData (multipart/form-data), nicht als JSON —
+                // das Backend verarbeitet sie mit Multer
                 const formData = new FormData();
                 formData.append('image', imageFile);
                 await fetch(`/loc/${id}/image`, { method: 'POST', body: formData });
             }
+            // Anforderung: nach dem Speichern zurück zur Hauptansicht
             await reloadLocations();
         }
     });
 }
 
 // Nominatim (OpenStreetMap) geocoding API — free, no API key required.
+// Geocoding: Adresse (Text) → Koordinaten {lat, lng}.
 async function geocode(address) {
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
     const res = await fetch(url, { headers: { 'Accept-Language': 'de' } });
     const data = await res.json();
+    // Nominatim liefert ein Array möglicher Treffer; leer = Adresse unbekannt
     if (data.length === 0) return null;
+    // Wir nehmen den besten (ersten) Treffer; die API liefert Strings, daher parseFloat
     return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
 }
 
+// Reverse Geocoding: Koordinaten → Adresse. Wird beim Karten-Klick benutzt,
+// um das Add-Formular vorzubefüllen.
 async function reverseGeocode(lat, lng) {
     const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
     const res = await fetch(url, { headers: { 'Accept-Language': 'de' } });
     const data = await res.json();
     if (!data.address) return null;
     const a = data.address;
+    // Nominatim benennt Felder je nach Ort unterschiedlich (city/town/village/...),
+    // daher die ||-Ketten als Fallbacks
     return {
         street: a.house_number ? `${a.road} ${a.house_number}` : (a.road || ''),
         zip: a.postcode || '',
