@@ -9,7 +9,12 @@ const storage = multer.diskStorage({
     // Date.now() prefix avoids collisions if two uploads share the same original filename.
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
-const upload = multer({ storage });
+const upload = multer({
+    storage,
+    // Server-side safety net: silently skip non-image files (req.file stays undefined),
+    // the route then answers 400. The visible error message comes from the frontend check.
+    fileFilter: (req, file, cb) => cb(null, file.mimetype.startsWith('image/'))
+});
 
 module.exports = (db) => {
     const router = express.Router();
@@ -69,6 +74,8 @@ module.exports = (db) => {
 
     // POST /loc/:id/image
     router.post('/loc/:id/image', upload.single('image'), async (req, res) => {
+        // fileFilter rejected the upload (not an image) — nothing was saved to disk.
+        if (!req.file) return res.sendStatus(400);
         const loc = await db.collection('locations').findOne({ _id: new ObjectId(req.params.id) });
         const existed = !!loc?.imageUrl;
         // Remove the previous file first so replacing an image never leaves an orphaned upload on disk.

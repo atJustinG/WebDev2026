@@ -47,23 +47,39 @@ function showAddPanel(lat = null, lng = null) {
     document.getElementById('add-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        const street = document.getElementById('loc-street').value;
+        const zip = document.getElementById('loc-zip').value;
+        const city = document.getElementById('loc-city').value;
+        const errorEl = document.getElementById('add-error');
+        errorEl.textContent = '';
+
+        const imageFile = document.getElementById('loc-image').files[0];
+        if (imageFile && !imageFile.type.startsWith('image/')) {
+            errorEl.textContent = t('onlyImages');
+            return;
+        }
+
         let coords = (lat && lng) ? { lat, lng } : null;
 
         if (!coords) {
-            const address = `${document.getElementById('loc-street').value}, ${document.getElementById('loc-zip').value} ${document.getElementById('loc-city').value}`;
-            coords = await geocode(address);
-            if (!coords) {
-                document.getElementById('add-error').textContent = t('addrNotFound');
+            const result = await geocode(street, zip, city);
+            if (!result) {
+                errorEl.textContent = t('addrNotFound');
                 return;
             }
+            // Nominatim may still answer with a nearby match in another postcode —
+            // reject that so street and ZIP are guaranteed to belong together.
+            if (result.zip && result.zip !== zip.trim()) {
+                errorEl.textContent = t('zipMismatch');
+                return;
+            }
+            coords = result;
         }
 
         const body = {
             name: document.getElementById('loc-name').value,
             description: document.getElementById('loc-desc').value,
-            street: document.getElementById('loc-street').value,
-            zip: document.getElementById('loc-zip').value,
-            city: document.getElementById('loc-city').value,
+            street, zip, city,
             category: document.getElementById('loc-category').value,
             lat: coords.lat,
             lng: coords.lng
@@ -79,7 +95,6 @@ function showAddPanel(lat = null, lng = null) {
             // The image upload needs the new location's id, which only exists after
             // the location itself was created, hence the separate follow-up request.
             const id = res.headers.get('Location').split('/').pop();
-            const imageFile = document.getElementById('loc-image').files[0];
             if (imageFile) {
                 const formData = new FormData();
                 formData.append('image', imageFile);
@@ -91,12 +106,23 @@ function showAddPanel(lat = null, lng = null) {
 }
 
 // Nominatim (OpenStreetMap) geocoding API — free, no API key required.
-async function geocode(address) {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+// Structured search (street/postalcode/city as separate params) instead of free-text q=,
+// because free-text often matches the ZIP/city area instead of the street — the pin then
+// lands on the wrong spot. addressdetails=1 returns the matched postcode so callers can
+// verify the entered ZIP actually belongs to the street.
+async function geocode(street, zip, city) {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&addressdetails=1`
+        + `&street=${encodeURIComponent(street)}`
+        + `&postalcode=${encodeURIComponent(zip)}`
+        + `&city=${encodeURIComponent(city)}`;
     const res = await fetch(url, { headers: { 'Accept-Language': 'de' } });
     const data = await res.json();
     if (data.length === 0) return null;
-    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+    return {
+        lat: parseFloat(data[0].lat),
+        lng: parseFloat(data[0].lon),
+        zip: data[0].address?.postcode || ''
+    };
 }
 
 async function reverseGeocode(lat, lng) {

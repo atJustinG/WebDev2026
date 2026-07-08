@@ -44,12 +44,27 @@ async function showDetailPanel(id) {
             const street = document.getElementById('loc-street').value;
             const zip = document.getElementById('loc-zip').value;
             const city = document.getElementById('loc-city').value;
+            const errorEl = document.getElementById('detail-error');
+            errorEl.textContent = '';
+
+            const imageFile = document.getElementById('loc-image').files[0];
+            if (imageFile && !imageFile.type.startsWith('image/')) {
+                errorEl.textContent = t('onlyImages');
+                return;
+            }
+
             // Re-geocode on every update (not just when the address changed) to keep this simple —
             // it's what makes "coordinates update automatically" work per the spec.
-            const coords = await geocode(`${street}, ${zip} ${city}`);
+            const coords = await geocode(street, zip, city);
 
             if (!coords) {
-                document.getElementById('detail-error').textContent = t('addrNotFound');
+                errorEl.textContent = t('addrNotFound');
+                return;
+            }
+            // The entered ZIP must really contain the street, otherwise the pin
+            // would jump to a wrong place on the map.
+            if (coords.zip && coords.zip !== zip.trim()) {
+                errorEl.textContent = t('zipMismatch');
                 return;
             }
 
@@ -66,7 +81,6 @@ async function showDetailPanel(id) {
                 })
             });
 
-            const imageFile = document.getElementById('loc-image').files[0];
             if (imageFile) {
                 const formData = new FormData();
                 formData.append('image', imageFile);
