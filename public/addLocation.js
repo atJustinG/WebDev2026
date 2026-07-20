@@ -37,6 +37,12 @@ function showAddPanel(lat = null, lng = null) {
                 document.getElementById('loc-street').value = addr.street;
                 document.getElementById('loc-zip').value = addr.zip;
                 document.getElementById('loc-city').value = addr.city;
+                // Lock street/ZIP/city to the clicked position — a long street can legitimately
+                // span several real ZIPs, so just re-validating "does this ZIP exist for this
+                // street somewhere in Berlin" would still accept a swapped-in wrong one.
+                document.getElementById('loc-street').disabled = true;
+                document.getElementById('loc-zip').disabled = true;
+                document.getElementById('loc-city').disabled = true;
                 hint.textContent = t('hintAddrFound');
             } else {
                 hint.textContent = t('hintAddrNotFound');
@@ -59,22 +65,21 @@ function showAddPanel(lat = null, lng = null) {
             return;
         }
 
-        let coords = (lat && lng) ? { lat, lng } : null;
-
-        if (!coords) {
-            const result = await geocode(street, zip, city);
-            if (!result) {
-                errorEl.textContent = t('addrNotFound');
-                return;
-            }
-            // Nominatim may still answer with a nearby match in another postcode —
-            // reject that so street and ZIP are guaranteed to belong together.
-            if (result.zip && result.zip !== zip.trim()) {
-                errorEl.textContent = t('zipMismatch');
-                return;
-            }
-            coords = result;
+        // Validate street/zip/city against the geocoder. For the map-click flow the fields are
+        // locked (see above) so this just confirms the clicked address; for manual entry via the
+        // "Add" button, this is the only check that street and ZIP actually belong together.
+        const result = await geocode(street, zip, city);
+        if (!result) {
+            errorEl.textContent = t('addrNotFound');
+            return;
         }
+        // Nominatim may still answer with a nearby match in another postcode —
+        // reject that so street and ZIP are guaranteed to belong together.
+        if (result.zip && result.zip !== zip.trim()) {
+            errorEl.textContent = t('zipMismatch');
+            return;
+        }
+        const coords = result;
 
         const body = {
             name: document.getElementById('loc-name').value,
