@@ -276,9 +276,9 @@ button {
 
     .left-column { width: 100%; }
 
-    .left-panel { max-height: 45vh; }
+    .left-panel { flex: none; max-height: 45vh; }
 
-    #map { height: 45vh; }
+    #map { flex: none; height: 45vh; }
 }
 
 @media (max-width: 480px) {
