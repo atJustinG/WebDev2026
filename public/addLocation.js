@@ -1,3 +1,4 @@
+// Renders the Add Location form and wires up geocoding/validation on submit.
 function showAddPanel(lat = null, lng = null) {
     const panel = document.getElementById('left-panel');
 
@@ -28,8 +29,6 @@ function showAddPanel(lat = null, lng = null) {
         </div>
     `;
 
-    // Only pre-fill via reverse geocoding when opened from a map click (lat/lng given);
-    // opening via the "Add" button leaves the address fields empty for manual entry.
     if (lat && lng) {
         reverseGeocode(lat, lng).then(addr => {
             const hint = document.getElementById('add-hint');
@@ -37,9 +36,6 @@ function showAddPanel(lat = null, lng = null) {
                 document.getElementById('loc-street').value = addr.street;
                 document.getElementById('loc-zip').value = addr.zip;
                 document.getElementById('loc-city').value = addr.city;
-                // Lock street/ZIP/city to the clicked position — a long street can legitimately
-                // span several real ZIPs, so just re-validating "does this ZIP exist for this
-                // street somewhere in Berlin" would still accept a swapped-in wrong one.
                 document.getElementById('loc-street').disabled = true;
                 document.getElementById('loc-zip').disabled = true;
                 document.getElementById('loc-city').disabled = true;
@@ -65,16 +61,11 @@ function showAddPanel(lat = null, lng = null) {
             return;
         }
 
-        // Validate street/zip/city against the geocoder. For the map-click flow the fields are
-        // locked (see above) so this just confirms the clicked address; for manual entry via the
-        // "Add" button, this is the only check that street and ZIP actually belong together.
         const result = await geocode(street, zip, city);
         if (!result) {
             errorEl.textContent = t('addrNotFound');
             return;
         }
-        // Nominatim may still answer with a nearby match in another postcode —
-        // reject that so street and ZIP are guaranteed to belong together.
         if (result.zip && result.zip !== zip.trim()) {
             errorEl.textContent = t('zipMismatch');
             return;
@@ -97,8 +88,6 @@ function showAddPanel(lat = null, lng = null) {
         });
 
         if (res.ok) {
-            // The image upload needs the new location's id, which only exists after
-            // the location itself was created, hence the separate follow-up request.
             const id = res.headers.get('Location').split('/').pop();
             if (imageFile) {
                 const formData = new FormData();
@@ -110,11 +99,7 @@ function showAddPanel(lat = null, lng = null) {
     });
 }
 
-// Nominatim (OpenStreetMap) geocoding API — free, no API key required.
-// Structured search (street/postalcode/city as separate params) instead of free-text q=,
-// because free-text often matches the ZIP/city area instead of the street — the pin then
-// lands on the wrong spot. addressdetails=1 returns the matched postcode so callers can
-// verify the entered ZIP actually belongs to the street.
+// Geocodes street/zip/city via Nominatim (OpenStreetMap), returns lat/lng + matched postcode.
 async function geocode(street, zip, city) {
     const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&addressdetails=1`
         + `&street=${encodeURIComponent(street)}`
@@ -130,6 +115,7 @@ async function geocode(street, zip, city) {
     };
 }
 
+// Looks up the street/zip/city for a lat/lng position via Nominatim.
 async function reverseGeocode(lat, lng) {
     const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
     const res = await fetch(url, { headers: { 'Accept-Language': 'de' } });

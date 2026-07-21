@@ -1,10 +1,11 @@
+// Clears the session and returns to the login screen.
 function logout() {
     currentUser = null;
     sessionStorage.removeItem('currentUser');
+    if (refreshInterval) { clearInterval(refreshInterval); refreshInterval = null; }
     showLogin();
 }
 
-// sessionStorage (not localStorage) so the login survives a page reload but clears once the tab is closed.
 const saved = sessionStorage.getItem('currentUser');
 if (saved) {
     currentUser = JSON.parse(saved);

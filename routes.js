@@ -4,23 +4,22 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+// Saves uploaded location images to uploads/ with a unique, timestamped filename.
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'uploads/'),
-    // Date.now() prefix avoids collisions if two uploads share the same original filename.
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
+// Multer middleware that only accepts image files.
 const upload = multer({
     storage,
-    // Server-side safety net: silently skip non-image files (req.file stays undefined),
-    // the route then answers 400. The visible error message comes from the frontend check.
     fileFilter: (req, file, cb) => cb(null, file.mimetype.startsWith('image/'))
 });
 
+// Builds the Express router with all API endpoints for a given DB connection.
 module.exports = (db) => {
     const router = express.Router();
 
-    // POST /login
-    //200 or 401
+    // POST /login — 200 or 401
     router.post('/login', async (req, res) => {
         const { username, password } = req.body;
         const user = await db.collection('users').findOne({ username, password });
@@ -28,23 +27,20 @@ module.exports = (db) => {
         res.json({ name: user.name, role: user.role });
     });
 
-    // GET /loc
-    //return 200 + json array
+    // GET /loc — 200 + json array
     router.get('/loc', async (req, res) => {
         const locations = await db.collection('locations').find().toArray();
         res.json(locations);
     });
 
-    // GET /loc/:id
-    //return 200+json obj
+    // GET /loc/:id — 200 + json obj
     router.get('/loc/:id', async (req, res) => {
         const loc = await db.collection('locations').findOne({ _id: new ObjectId(req.params.id) });
         if (!loc) return res.sendStatus(404);
         res.json(loc);
     });
 
-    // POST /loc
-    //201 + Location Header
+    // POST /loc — 201 + Location header
     router.post('/loc', async (req, res) => {
         const result = await db.collection('locations').insertOne(req.body);
         res.status(201).location(`/loc/${result.insertedId}`).send();
@@ -52,7 +48,6 @@ module.exports = (db) => {
 
     // PUT /loc/:id
     router.put('/loc/:id', async (req, res) => {
-        // Strip _id so the frontend's full location object can't overwrite Mongo's own immutable id.
         const { _id, ...update } = req.body;
         await db.collection('locations').updateOne(
             { _id: new ObjectId(req.params.id) },
@@ -74,11 +69,9 @@ module.exports = (db) => {
 
     // POST /loc/:id/image
     router.post('/loc/:id/image', upload.single('image'), async (req, res) => {
-        // fileFilter rejected the upload (not an image) — nothing was saved to disk.
         if (!req.file) return res.sendStatus(400);
         const loc = await db.collection('locations').findOne({ _id: new ObjectId(req.params.id) });
         const existed = !!loc?.imageUrl;
-        // Remove the previous file first so replacing an image never leaves an orphaned upload on disk.
         if (loc?.imageUrl) {
             const oldPath = path.join(__dirname, loc.imageUrl);
             if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);

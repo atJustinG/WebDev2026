@@ -1,3 +1,4 @@
+// Renders the detail/edit panel for one location and wires up the update form for admins.
 async function showDetailPanel(id) {
     const res = await fetch(`/loc/${id}`);
     const loc = await res.json();
@@ -53,16 +54,12 @@ async function showDetailPanel(id) {
                 return;
             }
 
-            // Re-geocode on every update (not just when the address changed) to keep this simple —
-            // it's what makes "coordinates update automatically" work per the spec.
             const coords = await geocode(street, zip, city);
 
             if (!coords) {
                 errorEl.textContent = t('addrNotFound');
                 return;
             }
-            // The entered ZIP must really contain the street, otherwise the pin
-            // would jump to a wrong place on the map.
             if (coords.zip && coords.zip !== zip.trim()) {
                 errorEl.textContent = t('zipMismatch');
                 return;
@@ -92,6 +89,7 @@ async function showDetailPanel(id) {
     }
 }
 
+// Asks for inline confirmation, then deletes a location and refreshes the view.
 function deleteLocation(id, trigger) {
     showInlineConfirm(trigger, t('confirmDeleteLocation'), async () => {
         await fetch(`/loc/${id}`, { method: 'DELETE' });
@@ -99,6 +97,7 @@ function deleteLocation(id, trigger) {
     });
 }
 
+// Asks for inline confirmation, then deletes a location's image and re-renders the panel.
 function deleteImage(id, trigger) {
     showInlineConfirm(trigger, t('confirmDeleteImage'), async () => {
         await fetch(`/loc/${id}/image`, { method: 'DELETE' });

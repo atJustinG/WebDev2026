@@ -1,3 +1,4 @@
+// Renders the login screen and handles the login form submission.
 function showLogin() {
     document.getElementById('app').innerHTML = `
         <header>

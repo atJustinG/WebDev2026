@@ -1,3 +1,4 @@
+// Renders the main screen (header, list, map, footer) and loads the locations.
 async function showMain() {
     if (map) { map.remove(); map = null; markers = []; }
 
@@ -30,16 +31,18 @@ async function showMain() {
 
     initMap();
     await reloadLocations();
+
+    if (refreshInterval) clearInterval(refreshInterval);
+    refreshInterval = setInterval(reloadLocations, 5000);
 }
 
+// Creates the Leaflet map centered on Berlin and opens the Add form on admin map clicks.
 function initMap() {
     map = L.map('map').setView([52.52, 13.405], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    // Admin shortcut: clicking the map opens the Add form pre-filled via reverse geocoding,
-    // instead of typing the address manually.
     map.on('click', (e) => {
         if (currentUser.role === 'admin') {
             showAddPanel(e.latlng.lat, e.latlng.lng);
@@ -47,13 +50,23 @@ function initMap() {
     });
 }
 
+// Keeps the Leaflet map correctly sized when the window/viewport is resized.
+window.addEventListener('resize', () => {
+    if (map) map.invalidateSize();
+});
+
+// Fetches all locations and re-renders the map markers; the list is only re-rendered
+// when no Add/Edit form is currently open, so periodic syncing can't wipe out in-progress input.
 async function reloadLocations() {
     const res = await fetch('/loc');
     const locations = await res.json();
-    renderListPanel(locations);
+    if (!document.querySelector('#add-form, #detail-form')) {
+        renderListPanel(locations);
+    }
     renderMarkers(locations);
 }
 
+// Renders the location list in the left panel, with edit/delete controls for admins.
 function renderListPanel(locations) {
     const panel = document.getElementById('left-panel');
     if (!panel) return;
@@ -90,6 +103,7 @@ function renderListPanel(locations) {
     `;
 }
 
+// Clears and redraws all map markers for the given locations.
 function renderMarkers(locations) {
     markers.forEach(m => m.remove());
     markers = [];
@@ -105,12 +119,13 @@ function renderMarkers(locations) {
     });
 }
 
+// Opens the popup of the marker matching the given location id.
 function highlightMarker(id) {
-    // Leaflet markers have no built-in "highlight" state, so we reuse the popup to draw attention.
     const m = markers.find(m => m._locId === id);
     if (m) m.openPopup();
 }
 
+// Closes any open marker popup.
 function unhighlightMarker() {
     if (map) map.closePopup();
 }
