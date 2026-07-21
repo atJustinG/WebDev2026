@@ -23,7 +23,7 @@ function showAddPanel(lat = null, lng = null) {
                 <p class="error" id="add-error"></p>
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">${t('save')}</button>
-                    <button type="button" class="btn-secondary" onclick="reloadLocations()">${t('cancel')}</button>
+                    <button type="button" class="btn-secondary" onclick="reloadLocations(true)">${t('cancel')}</button>
                 </div>
             </form>
         </div>
@@ -94,7 +94,7 @@ function showAddPanel(lat = null, lng = null) {
                 formData.append('image', imageFile);
                 await fetch(`/loc/${id}/image`, { method: 'POST', body: formData });
             }
-            await reloadLocations();
+            await reloadLocations(true);
         }
     });
 }

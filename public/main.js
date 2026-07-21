@@ -55,12 +55,13 @@ window.addEventListener('resize', () => {
     if (map) map.invalidateSize();
 });
 
-// Fetches all locations and re-renders the map markers; the list is only re-rendered
-// when no Add/Edit form is currently open, so periodic syncing can't wipe out in-progress input.
-async function reloadLocations() {
+// Fetches all locations and re-renders the map markers. The list is only re-rendered when
+// an Add/Edit form is NOT open, unless force is set — used by explicit actions (Cancel,
+// Save, Delete) that must close the form, while the periodic background sync leaves it alone.
+async function reloadLocations(force = false) {
     const res = await fetch('/loc');
     const locations = await res.json();
-    if (!document.querySelector('#add-form, #detail-form')) {
+    if (force || !document.querySelector('#add-form, #detail-form')) {
         renderListPanel(locations);
     }
     renderMarkers(locations);

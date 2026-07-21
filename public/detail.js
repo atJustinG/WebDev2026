@@ -30,7 +30,7 @@ async function showDetailPanel(id) {
                         <button type="submit" class="btn-primary">${t('update')}</button>
                         <button type="button" class="btn-danger" onclick="deleteLocation('${loc._id}', this)">${t('delete')}</button>
                     ` : ''}
-                    <button type="button" class="btn-secondary" onclick="reloadLocations()">
+                    <button type="button" class="btn-secondary" onclick="reloadLocations(true)">
                         ${isAdmin ? t('cancel') : t('close')}
                     </button>
                 </div>
@@ -84,7 +84,7 @@ async function showDetailPanel(id) {
                 await fetch(`/loc/${loc._id}/image`, { method: 'POST', body: formData });
             }
 
-            await reloadLocations();
+            await reloadLocations(true);
         });
     }
 }
@@ -93,7 +93,7 @@ async function showDetailPanel(id) {
 function deleteLocation(id, trigger) {
     showInlineConfirm(trigger, t('confirmDeleteLocation'), async () => {
         await fetch(`/loc/${id}`, { method: 'DELETE' });
-        await reloadLocations();
+        await reloadLocations(true);
     });
 }
 
